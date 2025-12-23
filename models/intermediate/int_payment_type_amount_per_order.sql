@@ -1,0 +1,28 @@
+WITH order_payments AS (
+    SELECT * FROM {{ ref('stg_stripe_order_payments') }}
+)
+SELECT
+    order_id,
+    SUM(
+        CASE
+            WHEN payment_type = 'cash'
+            THEN 1
+            ELSE 0
+        END
+    ) AS cash_amount,
+    SUM(
+        CASE
+            WHEN payment_type = 'credit'
+            THEN 1
+            ELSE 0
+        END
+    ) AS credit_amount,
+    SUM(
+        CASE
+            WHEN status = 'success'
+            THEN amount
+            ELSE 0
+        END
+    ) AS total_amount
+FROM order_payments
+GROUP BY 1
